@@ -396,9 +396,9 @@ class CrayRedfishUtils(RedfishUtils):
         except:
             pass
 
-        ## have a check that atleast one image path set based out of the above new logic
+        ## have a check that at least one image path set based out of the above new logic
         if not any(image_path_inputs.values()):
-            return {'ret': False, 'changed': True, 'msg': 'Must specify atleast one update_image_path'}
+            return {'ret': False, 'changed': True, 'msg': 'Must specify at least one update_image_path'}
         IP = attr.get('baseuri')
         username = attr.get('username')
         password = attr.get('password')

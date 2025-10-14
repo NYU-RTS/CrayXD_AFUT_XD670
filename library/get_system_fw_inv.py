@@ -48,7 +48,7 @@ def main():
 
     timeout = module.params['timeout']
     # Build root URI
-    root_uri = "https://" + module.params['baseuri']
+    root_uri = "http://" + module.params['baseuri']
     #update_uri = "/redfish/v1/UpdateService"
     rf_utils = CrayRedfishUtils(creds, root_uri, timeout, module, data_modification=True)
 

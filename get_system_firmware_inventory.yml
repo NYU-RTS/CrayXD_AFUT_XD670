@@ -10,10 +10,10 @@
     datatype: FirmwareInventory
 
   tasks:
-  # - name: System firmware Inventory Details will be stored in the below csv file
-  #   set_fact:
-  #     output_file: "All_System_FW_Inventory_{{ ansible_date_time.date }}_{{ ansible_date_time.time }}.csv"
-  #   run_once: True
+  - name: System firmware Inventory Details will be stored in the below csv file
+    set_fact:
+      output_file: "All_System_FW_Inventory_{{ ansible_date_time.date }}_{{ ansible_date_time.time }}.csv"
+    run_once: True
 
   - name: Fetching Inventory Details
     get_system_fw_inv:

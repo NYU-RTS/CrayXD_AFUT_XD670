@@ -29,7 +29,7 @@
       no_log: "{{ log_debug | default(true) }}"
       become: false
       tags: always
-      
+
     - name: System firmware Inventory Details will be stored in the below csv file
       set_fact:
         output_file: "All_System_FW_Inventory_{{ ansible_date_time.date }}_{{ ansible_date_time.time }}.csv"
@@ -47,7 +47,7 @@
 
     - name: Show formatted firmware inventory
       debug:
-        msg: "{{ inv_output.msg | from_json | to_nice_json }}"
+        var: inv_output
 
     # - name: Writing inventory details to {{output_file}} file
     #   shell: echo {{inv_output.msg}} >> {{output_file}}

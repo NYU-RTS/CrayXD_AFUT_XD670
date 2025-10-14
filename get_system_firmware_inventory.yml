@@ -4,8 +4,8 @@
   name: version 1.0 Fetches the AFUT supported Cray XD servers System Firmware Inventory Details along with Model name
   gather_facts: yes
   vars:
-    bmc_username: "{{ lookup('community.hashi_vault.hashi_vault', 'secret=hsys-secrets/data/torch/ipmi:username', auth_method='jwt', mount_point='kubernetes', role_id='aap', jwt=jwt) }}"
-    bmc_password: "{{ lookup('community.hashi_vault.hashi_vault', 'secret=hsys-secrets/data/torch/ipmi:password', auth_method='jwt', mount_point='kubernetes', role_id='aap', jwt=jwt) }}"
+    # bmc_username: "{{ lookup('community.hashi_vault.hashi_vault', 'secret=hsys-secrets/data/torch/ipmi:username', auth_method='jwt', mount_point='kubernetes', role_id='aap', jwt=jwt) }}"
+    # bmc_password: "{{ lookup('community.hashi_vault.hashi_vault', 'secret=hsys-secrets/data/torch/ipmi:password', auth_method='jwt', mount_point='kubernetes', role_id='aap', jwt=jwt) }}"
     ansible_hashi_vault_url: 'https://vault.hpc.nyu.edu'
     ansible_hashi_vault_validate_certs: false
     baseuri: "{{ ansible_host }}"
@@ -29,6 +29,14 @@
       no_log: "{{ log_debug | default(true) }}"
       become: false
       tags: always
+    - name: Set fact from secret
+      ansible.builtin.set_fact:
+        bmc_username: "{{ lookup('community.hashi_vault.hashi_vault', 'secret=hsys-secrets/data/torch/ipmi:username', auth_method='jwt', mount_point='kubernetes', role_id='aap', jwt=jwt) }}"
+      delegate_to: 127.0.0.1
+    - name: Set fact from secret
+      ansible.builtin.set_fact:
+        bmc_password: "{{ lookup('community.hashi_vault.hashi_vault', 'secret=hsys-secrets/data/torch/ipmi:password', auth_method='jwt', mount_point='kubernetes', role_id='aap', jwt=jwt) }}"
+      delegate_to: 127.0.0.1
 
     - name: System firmware Inventory Details will be stored in the below csv file
       set_fact:

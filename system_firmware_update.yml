@@ -39,7 +39,7 @@
 
     - name: Fetch firmware files
       ansible.builtin.get_url:
-        url: http://files-webserver.hpc-infra.svc.cluster.local:8080/software/hpe/xd670/2025.08.00/2025.08.00.zip
+        url: http://files-webserver.hpc-infra.svc.cluster.local:8080/software/hpe/xd670/2025.08.00/XD670_BMC_v1.22_signed.bin.hpm
         dest: "/runner/project"
       
     # - name: Unzip all compute firmware HPM files

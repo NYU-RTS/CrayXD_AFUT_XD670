@@ -30,11 +30,16 @@
       become: false
       tags: always
 
-    - name: Fetch firmware files
-      ansible.builtin.get_url:
-        url: https://files-webserver-hpc-infra.apps.cloud.rt.nyu.edu/software/hpe/xd670/2025.08.00/2025.08.00.zip
-        dest: "/runner/project"
-        validate_certs: false
+    # - name: Fetch firmware files
+    #   ansible.builtin.get_url:
+    #     url: https://files-webserver-hpc-infra.apps.cloud.rt.nyu.edu/software/hpe/xd670/2025.08.00/2025.08.00.zip
+    #     dest: "/runner/project"
+    #     validate_certs: false
+
+    - name: curl firmware files
+      ansible.builtin.shell: "curl -k -o /runner/project/2025.08.00.zip https://files-webserver-hpc-infra.apps.cloud.rt.nyu.edu/software/hpe/xd670/2025.08.00/2025.08.00.zip"
+      args:
+        creates: /runner/project/2025.08.00.zip
       
     - name: Unzip all compute firmware HPM files
       ansible.builtin.unarchive:

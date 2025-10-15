@@ -5,11 +5,31 @@
   name: version 1.0 System Firmware Update for HPE Cray XD670 systems
   
   vars:
-     bmc_username: "{{ inputs[inventory_hostname].user }}"
-     bmc_password: "{{ inputs[inventory_hostname].password }}"
-     baseuri: "{{ ansible_ssh_host }}"
+    bmc_username: "{{ lookup('community.hashi_vault.hashi_vault', 'secret=hsys-secrets/data/torch/ipmi:username', auth_method='jwt', mount_point='kubernetes', role_id='aap', jwt=jwt) }}"
+    bmc_password: "{{ lookup('community.hashi_vault.hashi_vault', 'secret=hsys-secrets/data/torch/ipmi:password', auth_method='jwt', mount_point='kubernetes', role_id='aap', jwt=jwt) }}"
+    ansible_hashi_vault_url: 'https://vault.hpc.nyu.edu'
+    ansible_hashi_vault_validate_certs: false
+    baseuri: "{{ ansible_host }}"
  
-  tasks:    
+  tasks:   
+    - name: Get Vault SA token
+      kubernetes.core.k8s_info:
+        api_version: v1
+        kind: Secret
+        name: cicd
+        namespace: u-workbench-cte3
+      register: cicd
+      no_log: "{{ log_debug | default(true) }}"
+      delegate_to: 127.0.0.1
+      become: false
+      tags: always
+    - name: Set JWT variable
+      ansible.builtin.set_fact:
+        jwt: "{{ cicd.resources[0].data.token | b64decode }}"
+      no_log: "{{ log_debug | default(true) }}"
+      become: false
+      tags: always
+
     - name: System Firmware Update Status result will be uploaded to the below csv file
       set_fact: 
         output_file: "System_FW_Update_{{ ansible_date_time.date }}_{{ ansible_date_time.time }}.csv"
@@ -25,5 +45,16 @@
         output_file_name: "{{ output_file }}"
       register: system_fw_update_output
 
-    - name: Writing Firmware Upgrade status details to {{output_file}} file
-      shell: echo {{system_fw_update_output.msg}} >> {{ output_file }}
+    - name: Read firmware update CSV file
+      delegate_to: localhost
+      run_once: true
+      slurp:
+        src: "{{ output_file }}"
+      register: csv_data
+
+    - name: Show CSV results in job output
+      debug:
+        msg: "{{ csv_data.content | b64decode }}"
+    
+    # - name: Writing Firmware Upgrade status details to {{output_file}} file
+    #   shell: echo {{system_fw_update_output.msg}} >> {{ output_file }}

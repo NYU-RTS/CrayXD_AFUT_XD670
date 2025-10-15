@@ -30,16 +30,22 @@
       become: false
       tags: always
     
+    - name: Create firmware directory
+      ansible.builtin.file:
+        path: "/tmp/firmware"
+        state: directory
+        mode: '0755'
+        
     - name: Fetch firmware files
       ansible.builtin.get_url:
         url: https://files-webserver-hpc-infra.apps.cloud.rt.nyu.edu/software/hpe/xd670/2025.08.00/2025.08.00.zip
-        dest: "/var/tmp/firmware/"
+        dest: "/tmp/firmware/"
         validate_certs: false
       
     - name: Unzip all compute firmware HPM files
       ansible.builtin.unarchive:
-        src: "/var/tmp/firmware/2025.08.00.zip"
-        dest: "/var/tmp/firmware/"
+        src: "/tmp/firmware/2025.08.00.zip"
+        dest: "/tmp/firmware/"
 
     - name: System Firmware Update Status result will be uploaded to the below csv file
       set_fact: 

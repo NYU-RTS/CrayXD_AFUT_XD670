@@ -29,13 +29,19 @@
       no_log: "{{ log_debug | default(true) }}"
       become: false
       tags: always
+
+    - name: Show workspace paths
+      ansible.builtin.command: pwd
+      register: whereami
+      ansible.builtin.debug:
+        var: whereami.stdout
     
     - name: Create firmware directory
       ansible.builtin.file:
         path: "/tmp/firmware"
         state: directory
         mode: '0755'
-        
+
     - name: Fetch firmware files
       ansible.builtin.get_url:
         url: https://files-webserver-hpc-infra.apps.cloud.rt.nyu.edu/software/hpe/xd670/2025.08.00/2025.08.00.zip

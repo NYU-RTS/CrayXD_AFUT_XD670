@@ -29,12 +29,6 @@
       no_log: "{{ log_debug | default(true) }}"
       become: false
       tags: always
-    
-    - name: Create firmware directory
-      ansible.builtin.file:
-        path: "/runner/project"
-        state: directory
-        mode: '0755'
 
     - name: Fetch firmware files
       ansible.builtin.get_url:

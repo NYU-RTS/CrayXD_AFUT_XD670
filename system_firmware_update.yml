@@ -41,6 +41,8 @@
       ansible.builtin.get_url:
         url: https://files-webserver-hpc-infra.apps.cloud.rt.nyu.edu/software/hpe/xd670/2025.08.00/2025.08.00.zip
         dest: "/runner/project"
+        owner: "{{ whoami_output.stdout }}"
+        group: "{{ whoami_output.stdout }}"
       
     - name: Unzip all compute firmware HPM files
       ansible.builtin.unarchive:

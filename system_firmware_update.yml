@@ -39,15 +39,13 @@
 
     - name: Fetch firmware files
       ansible.builtin.get_url:
-        url: https://files-webserver-hpc-infra.apps.cloud.rt.nyu.edu/software/hpe/xd670/2025.08.00/2025.08.00.zip
+        url: https://files-webserver-hpc-infra.apps.cloud.rt.nyu.edu/software/hpe/xd670/2025.08.00/XD670_BMC_v1.22_signed.bin.hpm
         dest: "/runner/project"
-        owner: "{{ whoami_output.stdout }}"
-        group: "{{ whoami_output.stdout }}"
       
-    - name: Unzip all compute firmware HPM files
-      ansible.builtin.unarchive:
-        src: "/runner/project/2025.08.00.zip"
-        dest: "/runner/project"
+    # - name: Unzip all compute firmware HPM files
+    #   ansible.builtin.unarchive:
+    #     src: "/runner/project/2025.08.00.zip"
+    #     dest: "/runner/project"
 
     - name: System Firmware Update Status result will be uploaded to the below csv file
       set_fact: 

@@ -40,7 +40,6 @@
       ansible.builtin.unarchive:
         src: "/tmp/2025.08.00.zip"
         dest: "/tmp/"
-        mode: 0755
 
     - name: System Firmware Update Status result will be uploaded to the below csv file
       set_fact: 

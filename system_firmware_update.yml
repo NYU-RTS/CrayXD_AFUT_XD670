@@ -29,31 +29,23 @@
       no_log: "{{ log_debug | default(true) }}"
       become: false
       tags: always
-
-    - name: Show workspace paths
-      ansible.builtin.command: pwd
-      register: whereami
-
-    - name: Display workspace path
-      ansible.builtin.debug:
-        var: whereami.stdout
     
     - name: Create firmware directory
       ansible.builtin.file:
-        path: "/tmp/firmware"
+        path: "/runner/project"
         state: directory
         mode: '0755'
 
     - name: Fetch firmware files
       ansible.builtin.get_url:
         url: https://files-webserver-hpc-infra.apps.cloud.rt.nyu.edu/software/hpe/xd670/2025.08.00/2025.08.00.zip
-        dest: "/tmp/firmware/"
+        dest: "/runner/project"
         validate_certs: false
       
     - name: Unzip all compute firmware HPM files
       ansible.builtin.unarchive:
-        src: "/tmp/firmware/2025.08.00.zip"
-        dest: "/tmp/firmware/"
+        src: "/runner/project/2025.08.00.zip"
+        dest: "/runner/project"
 
     - name: System Firmware Update Status result will be uploaded to the below csv file
       set_fact: 

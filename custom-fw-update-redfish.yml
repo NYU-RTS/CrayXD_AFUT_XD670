@@ -1,0 +1,142 @@
+- name: Automating firmware updates with redfish for XD670s
+  hosts: xds
+  connection: local
+  gather_facts: no
+  vars: 
+    bmc_username: "{{ lookup('community.hashi_vault.hashi_vault', 'secret=hsys-secrets/data/torch/ipmi:username', auth_method='jwt', mount_point='kubernetes', role_id='aap', jwt=jwt) }}"
+    bmc_password: "{{ lookup('community.hashi_vault.hashi_vault', 'secret=hsys-secrets/data/torch/ipmi:password', auth_method='jwt', mount_point='kubernetes', role_id='aap', jwt=jwt) }}"
+    ansible_hashi_vault_url: 'https://vault.hpc.nyu.edu'
+    ansible_hashi_vault_validate_certs: false
+    baseuri: "{{ ansible_host }}"
+    bios_fw: "software/hpe/xd670/2025.08.00/CUXD670_5.32_v2.05_signed.bin.hpm"
+    bmc_fw: "software/hpe/xd670/2025.08.00/XD670_BMC_v1.22_signed.bin.hpm"
+    # cpld_fw: "software/hpe/xd670/2025.08.00/"
+    web_int: "files-webserver.hpc-infra.svc.cluster.local:8080"
+  tasks:
+    - name: Get Vault SA token
+      kubernetes.core.k8s_info:
+        api_version: v1
+        kind: Secret
+        name: cicd
+        namespace: u-workbench-cte3
+      register: cicd
+      no_log: "{{ log_debug | default(true) }}"
+      delegate_to: 127.0.0.1
+      become: false
+      tags: always
+    - name: Set JWT variable
+      ansible.builtin.set_fact:
+        jwt: "{{ cicd.resources[0].data.token | b64decode }}"
+      no_log: "{{ log_debug | default(true) }}"
+      become: false
+      tags: always
+
+    - name: Get all firmware versions via Redfish
+      block:
+        - name: Get firmware versions
+          ansible.builtin.uri:
+            url: "https://{{ ansible_host }}/redfish/v1/UpdateService/FirmwareInventory/{{ item }}"
+            method: GET
+            user: "{{ bmc_username }}"
+            password: "{{ bmc_password }}"
+            force_basic_auth: true
+            validate_certs: false
+            return_content: true
+            headers:
+              Accept: "application/json"
+            status_code: [200, 404]
+          loop:
+            - BIOS
+            - BMC
+            - BMC_SKU
+            - BPB_CPLD1
+            - BPB_CPLD2
+            - HGX_FW_GPU_SXM_1
+            - HGX_FW_GPU_SXM_2
+            - HGX_FW_GPU_SXM_3
+            - HGX_FW_GPU_SXM_4
+            - HGX_FW_GPU_SXM_5
+            - HGX_FW_GPU_SXM_6
+            - HGX_FW_GPU_SXM_7
+            - HGX_FW_GPU_SXM_8
+          register: inv_specific
+          failed_when: false
+
+        - name: Map for requested components
+          ansible.builtin.set_fact:
+            versions: >-
+              {{
+                dict(
+                  (inv_specific.results
+                    | selectattr('status','equalto',200)
+                    | map(attribute='json')
+                    | map(attribute='Id') | list)
+                  |
+                  zip(
+                    inv_specific.results
+                    | selectattr('status','equalto',200)
+                    | map(attribute='json')
+                    | map(attribute='Version') | list
+                  )
+                )
+              }}
+    
+        - name: Show versions for requested components
+          ansible.builtin.debug:
+            var: versions
+      tags: getfw
+
+    - name: Trigger firmware update
+      ansible.builtin.uri:
+        url: "https://{{ ansible_host }}/redfish/v1/UpdateService/Actions/SimpleUpdate"
+        method: POST
+        user: "{{ bmc_username }}"
+        password: "{{ bmc_password }}"
+        force_basic_auth: true
+        validate_certs: false
+        headers:
+          Content-Type: "application/json"
+          Accept: "application/json"
+        body_format: json
+        body:
+          ImageURI: "hhttp://{{ web_int }}/{{ bmc_fw }}"
+      tags: bmc
+    
+    # - name: Wait 500 seconds after firmware upload
+    #   ansible.builtin.pause:
+    #     seconds: 500
+    #   tags: bmc
+
+    # - name: Perform reboot via Redfish (ForceRestart)
+    #   ansible.builtin.uri:
+    #     url: "https://{{ ansible_host }}/redfish/v1/Systems/Self/Actions/ComputerSystem.Reset"
+    #     method: POST
+    #     user: "{{ bmc_username }}"
+    #     password: "{{ bmc_password }}"
+    #     force_basic_auth: true
+    #     validate_certs: false
+    #     body_format: json
+    #     headers:
+    #       Content-Type: "application/json"
+    #     body:
+    #       ResetType: ForceRestart
+    #     status_code: [200, 202]
+    #   register: reboot1
+    #   tags: bmc
+
+    
+    - name: Trigger firmware update
+      ansible.builtin.uri:
+        url: "https://{{ ansible_host }}/redfish/v1/UpdateService/Actions/SimpleUpdate"
+        method: POST
+        user: "{{ bmc_username }}"
+        password: "{{ bmc_password }}"
+        force_basic_auth: true
+        validate_certs: false
+        headers:
+          Content-Type: "application/json"
+          Accept: "application/json"
+        body_format: json
+        body:
+          ImageURI: "hhttp://{{ web_int }}/{{ bios_fw }}"
+      tags: bios

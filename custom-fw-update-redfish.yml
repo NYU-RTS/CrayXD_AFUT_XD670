@@ -165,6 +165,7 @@
             password: "{{ bmc_password }}"
             validate_certs: false
             timeout: 600
+            update_protocol: HTTP
             update_image_file: "{{ bmc_fw }}"
             update_targets:
               - /redfish/v1/UpdateService/FirmwareInventory/BMC

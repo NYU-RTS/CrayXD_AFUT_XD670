@@ -12,6 +12,22 @@
     bmc_fw: "software/hpe/xd670/2025.08.00/XD670_BMC_v1.22_signed.bin.hpm"
     # cpld_fw: "software/hpe/xd670/2025.08.00/"
     web_int: "files-webserver.hpc-infra.svc.cluster.local:8080"
+    desired_versions:
+      BMC: "1.22"
+      BMC_SKU: "1742191433"
+      BIOS: "CUXD670_5.32_v2.05"
+      MB_CPLD1: "22"
+      BPB_CPLD1: "05"
+      BPB_CPLD2: "32"
+      SCM_CPLD1: "10"
+      HGX_FW_BMC_0: "HGX-22.10-1-rc67"
+      HGX_FW_ERoT_BMC_0: "00.02.0182.0000_n00"
+      HGX_FW_ERoT_FPGA_0: "00.02.0182.0000_n00"
+      HGX_FW_GPU_SXM_: "96.00.A5.00.1A"
+      HGX_FW_NVSwitch_: "96.10.57.00.01"
+      HGX_FW_PCIeRetimer_: "2.7.5"
+      HGX_FW_ERoT_NVSwitch_: "00.02.0182.0000_n00"
+      HGX_FW_ERoT_GPU_SXM_: "00.02.0182.0000_n00"
   tasks:
     - name: Get Vault SA token
       kubernetes.core.k8s_info:
@@ -46,11 +62,13 @@
               Accept: "application/json"
             status_code: [200, 404]
           loop:
-            - BIOS
             - BMC
             - BMC_SKU
+            - BIOS
+            - MB_CPLD1
             - BPB_CPLD1
             - BPB_CPLD2
+            - SCM_CPLD1
             - HGX_FW_GPU_SXM_1
             - HGX_FW_GPU_SXM_2
             - HGX_FW_GPU_SXM_3
@@ -59,6 +77,34 @@
             - HGX_FW_GPU_SXM_6
             - HGX_FW_GPU_SXM_7
             - HGX_FW_GPU_SXM_8
+            - HGX_FW_NVSwitch_0
+            - HGX_FW_NVSwitch_1
+            - HGX_FW_NVSwitch_2
+            - HGX_FW_NVSwitch_3
+            - HGX_FW_PCIeRetimer_0
+            - HGX_FW_PCIeRetimer_1
+            - HGX_FW_PCIeRetimer_2
+            - HGX_FW_PCIeRetimer_3
+            - HGX_FW_PCIeRetimer_4
+            - HGX_FW_PCIeRetimer_5
+            - HGX_FW_PCIeRetimer_6
+            - HGX_FW_PCIeRetimer_7
+            - HGX_FW_PCIeRetimer_8
+            - HGX_FW_ERoT_GPU_SXM_1
+            - HGX_FW_ERoT_GPU_SXM_2
+            - HGX_FW_ERoT_GPU_SXM_3
+            - HGX_FW_ERoT_GPU_SXM_4
+            - HGX_FW_ERoT_GPU_SXM_5
+            - HGX_FW_ERoT_GPU_SXM_6
+            - HGX_FW_ERoT_GPU_SXM_7
+            - HGX_FW_ERoT_GPU_SXM_8
+            - HGX_FW_ERoT_NVSwitch_0
+            - HGX_FW_ERoT_NVSwitch_1
+            - HGX_FW_ERoT_NVSwitch_2
+            - HGX_FW_ERoT_NVSwitch_3
+            - HGX_FW_ERoT_BMC_0
+            - HGX_FW_ERoT_FPGA_0
+            - HGX_FW_BMC_0
           register: inv_specific
           failed_when: false
 
@@ -84,59 +130,46 @@
         - name: Show versions for requested components
           ansible.builtin.debug:
             var: versions
+
+        - name: Show mismatched firmware (simple)
+          ansible.builtin.debug:
+            msg: |
+              Host: {{ inventory_hostname }}
+              {% for r in inv_specific.results if r.status == 200 %}
+              {% set id = r.json.Id %}
+              {% set v = r.json.Version %}
+              {% for p, expected in desired_versions.items() %}
+              {% if id.startswith(p) and v != expected %}
+              - {{ id }} current={{ v }} expected={{ expected }}
+              {% endif %}
+              {% endfor %}
+              {% endfor %}
       tags: getfw
-
-    - name: Trigger firmware update
-      ansible.builtin.uri:
-        url: "https://{{ ansible_host }}/redfish/v1/UpdateService/Actions/SimpleUpdate"
-        method: POST
-        user: "{{ bmc_username }}"
-        password: "{{ bmc_password }}"
-        force_basic_auth: true
-        validate_certs: false
-        headers:
-          Content-Type: "application/json"
-          Accept: "application/json"
-        body_format: json
-        body:
-          ImageURI: "hhttp://{{ web_int }}/{{ bmc_fw }}"
-      tags: bmc
     
-    # - name: Wait 500 seconds after firmware upload
-    #   ansible.builtin.pause:
-    #     seconds: 500
-    #   tags: bmc
-
-    # - name: Perform reboot via Redfish (ForceRestart)
-    #   ansible.builtin.uri:
-    #     url: "https://{{ ansible_host }}/redfish/v1/Systems/Self/Actions/ComputerSystem.Reset"
-    #     method: POST
-    #     user: "{{ bmc_username }}"
-    #     password: "{{ bmc_password }}"
-    #     force_basic_auth: true
-    #     validate_certs: false
-    #     body_format: json
-    #     headers:
-    #       Content-Type: "application/json"
-    #     body:
-    #       ResetType: ForceRestart
-    #     status_code: [200, 202]
-    #   register: reboot1
-    #   tags: bmc
-
-    
-    - name: Trigger firmware update
-      ansible.builtin.uri:
-        url: "https://{{ ansible_host }}/redfish/v1/UpdateService/Actions/SimpleUpdate"
-        method: POST
-        user: "{{ bmc_username }}"
-        password: "{{ bmc_password }}"
-        force_basic_auth: true
-        validate_certs: false
-        headers:
-          Content-Type: "application/json"
-          Accept: "application/json"
-        body_format: json
-        body:
-          ImageURI: "hhttp://{{ web_int }}/{{ bios_fw }}"
-      tags: bios
+    - name: Bmc Firmware Update via Redfish
+      block:
+        - name: Fetch firmware file
+          ansible.builtin.get_url:
+            url: "http://{{ web_int }}/{{ bmc_fw }}"
+            dest: "/runner/project/{{ bmc_fw }}"
+          tags: bmc
+        
+        - name: Multipart HTTP push firmware update 
+          community.general.redfish_command:
+            category: Update
+            command: MultipartHTTPPushUpdate
+            baseuri: "http://{{ baseuri }}"
+            username: "{{ bmc_username }}"
+            password: "{{ bmc_password }}"
+            validate_certs: false
+            timeout: 600
+            update_image_file: "/runner/project/{{ bmc_fw }}"
+            update_targets:
+              - /redfish/v1/UpdateService/FirmwareInventory/BMC
+            wait: true
+            wait_timeout: 1200
+          vars:
+            oem_payload:
+              ImageType: BMC
+              PreserveConfiguration: true
+          register: bmc_update

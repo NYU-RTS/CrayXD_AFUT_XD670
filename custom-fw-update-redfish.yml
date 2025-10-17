@@ -160,7 +160,7 @@
           community.general.redfish_command:
             category: Update
             command: MultipartHTTPPushUpdate
-            baseuri: "http://{{ baseuri }}"
+            baseuri: "{{ baseuri }}"
             username: "{{ bmc_username }}"
             password: "{{ bmc_password }}"
             validate_certs: false

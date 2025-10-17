@@ -13,8 +13,8 @@
     # cpld_fw: "software/hpe/xd670/2025.08.00/"
     web_int: "files-webserver.hpc-infra.svc.cluster.local:8080"
     desired_versions:
-      BMC: "1.22"
-      BMC_SKU: "1742191433"
+      BMC: "01.22.00"
+      # BMC_SKU: "1750736455"
       BIOS: "CUXD670_5.32_v2.05"
       MB_CPLD1: "22"
       BPB_CPLD1: "05"
@@ -64,7 +64,7 @@
             status_code: [200, 404]
           loop:
             - BMC
-            - BMC_SKU
+            # - BMC_SKU
             - BIOS
             - MB_CPLD1
             - BPB_CPLD1

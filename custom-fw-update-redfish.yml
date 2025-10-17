@@ -21,6 +21,7 @@
       BPB_CPLD2: "32"
       SCM_CPLD1: "10"
       HGX_FW_BMC_0: "HGX-22.10-1-rc67"
+      HGX_FW_FPGA_0: "2.53"
       HGX_FW_ERoT_BMC_0: "00.02.0182.0000_n00"
       HGX_FW_ERoT_FPGA_0: "00.02.0182.0000_n00"
       HGX_FW_GPU_SXM_: "96.00.A5.00.1A"
@@ -104,6 +105,7 @@
             - HGX_FW_ERoT_NVSwitch_3
             - HGX_FW_ERoT_BMC_0
             - HGX_FW_ERoT_FPGA_0
+            - HGX_FW_FPGA_0
             - HGX_FW_BMC_0
           register: inv_specific
           failed_when: false
@@ -152,8 +154,7 @@
           ansible.builtin.get_url:
             url: "http://{{ web_int }}/{{ bmc_fw }}"
             dest: "/runner/project/{{ bmc_fw }}"
-          tags: bmc
-        
+      
         - name: Multipart HTTP push firmware update 
           community.general.redfish_command:
             category: Update
@@ -170,6 +171,30 @@
             wait_timeout: 1200
           vars:
             oem_payload:
-              ImageType: BMC
-              PreserveConfiguration: true
+              ImageType: HPM_BMC
           register: bmc_update
+        
+        - name: Show BMC update result
+          ansible.builtin.debug:
+            var: bmc_update
+
+        - name: Get firmware versions after BMC update
+          ansible.builtin.uri:
+            url: "https://{{ ansible_host }}/redfish/v1/UpdateService/FirmwareInventory/BMC"
+            method: GET
+            user: "{{ bmc_username }}"
+            password: "{{ bmc_password }}"
+            force_basic_auth: true
+            validate_certs: false
+            return_content: true
+            headers:
+              Accept: "application/json"
+            status_code: [200, 404]
+          register: current_bmc_version
+          failed_when: false
+        
+        - name: Show BMC version after update
+          ansible.builtin.debug:
+            var: current_bmc_version.json.Version
+      tags: bmc
+

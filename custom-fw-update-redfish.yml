@@ -13,7 +13,7 @@
     bmc_fw: "{{ dest_dir }}/XD670_BMC_v1.22_signed.bin.hpm"
     web_int_bmc_url: "{{ web_int }}/software/hpe/xd670/2025.08.00/XD670_BMC_v1.22_signed.bin.hpm"
     # cpld_fw: "software/hpe/xd670/2025.08.00/"
-    web_int: "files-webserver.hpc-infra.svc.cluster.local:8080"
+    web_int: "http://files-webserver.hpc-infra.svc.cluster.local:8080"
     desired_versions:
       BMC: "01.22.00"
       # BMC_SKU: "1750736455"

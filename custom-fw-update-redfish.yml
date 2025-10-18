@@ -171,8 +171,12 @@
               - /redfish/v1/UpdateService/FirmwareInventory/BMC
             wait: true
             wait_timeout: 1200
-            update_oem_params:
-              ImageType: HPM_BMC  
+            update_custom_oem_header: OemParameters
+            update_custom_oem_mime_type: "application/json"
+            update_custom_oem_params: "{{ oem_payload | to_json }}"
+          vars:
+            oem_payload:
+              ImageType: HPM_BMC
           register: bmc_update
         
         - name: Show BMC update result

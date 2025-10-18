@@ -203,3 +203,18 @@
             var: current_bmc_version.json.Version
       tags: bmc
 
+    - name: Watch firmware flash progress
+      ansible.builtin.uri:
+        url: "http://10.32.46.90/redfish/v1/UpdateService"
+        method: GET
+        user: "{{ bmc_username }}"
+        password: "{{ bmc_password }}"
+        force_basic_auth: true
+        validate_certs: false
+        return_content: true
+      register: progress
+      until: >
+        ((progress.json.Oem.AMIUpdateService.UpdateInformation.FlashPercentage | default('0') | regex_search('\\d+') | int) >= 100)
+      retries: 500
+      delay: 5
+      tags: progress

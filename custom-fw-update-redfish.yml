@@ -1,17 +1,19 @@
 - name: Automating firmware updates with redfish for XD670s
   hosts: xds
   connection: local
-  gather_facts: no
+  gather_facts: yes
   vars: 
     bmc_username: "{{ lookup('community.hashi_vault.hashi_vault', 'secret=hsys-secrets/data/torch/ipmi:username', auth_method='jwt', mount_point='kubernetes', role_id='aap', jwt=jwt) }}"
     bmc_password: "{{ lookup('community.hashi_vault.hashi_vault', 'secret=hsys-secrets/data/torch/ipmi:password', auth_method='jwt', mount_point='kubernetes', role_id='aap', jwt=jwt) }}"
     ansible_hashi_vault_url: 'https://vault.hpc.nyu.edu'
     ansible_hashi_vault_validate_certs: false
     baseuri: "{{ ansible_host }}"
-    bios_fw: "software/hpe/xd670/2025.08.00/CUXD670_5.32_v2.05_signed.bin.hpm"
-    bmc_fw: "software/hpe/xd670/2025.08.00/XD670_BMC_v1.22_signed.bin.hpm"
+    dest_dir: "/runner/project"
+    bios_fw: "{{ dest_dir }}/CUXD670_5.32_v2.05_signed.bin.hpm"
+    bmc_fw: "{{ dest_dir }}/XD670_BMC_v1.22_signed.bin.hpm"
+    web_int_bmc_url: "{{ web_int }}/software/hpe/xd670/2025.08.00/XD670_BMC_v1.22_signed.bin.hpm"
     # cpld_fw: "software/hpe/xd670/2025.08.00/"
-    web_int: "files-webserver.hpc-infra.svc.cluster.local:8080"
+    web_int: "http://files-webserver.hpc-infra.svc.cluster.local:8080"
     desired_versions:
       BMC: "01.22.00"
       # BMC_SKU: "1750736455"
@@ -152,23 +154,26 @@
       block:
         - name: Fetch firmware file
           ansible.builtin.get_url:
-            url: "http://{{ web_int }}/{{ bmc_fw }}"
-            dest: "/runner/project/{{ bmc_fw }}"
-      
+            url: "{{ web_int_bmc_url }}"
+            dest: "/runner/project"
         - name: Multipart HTTP push firmware update 
           community.general.redfish_command:
             category: Update
             command: MultipartHTTPPushUpdate
-            baseuri: "http://{{ baseuri }}"
+            baseuri: "{{ baseuri }}"
             username: "{{ bmc_username }}"
             password: "{{ bmc_password }}"
             validate_certs: false
             timeout: 600
-            update_image_file: "/runner/project/{{ bmc_fw }}"
+            update_protocol: HTTP
+            update_image_file: "{{ bmc_fw }}"
             update_targets:
               - /redfish/v1/UpdateService/FirmwareInventory/BMC
             wait: true
             wait_timeout: 1200
+            update_custom_oem_header: OemParameters
+            update_custom_oem_mime_type: "application/json"
+            update_custom_oem_params: "{{ oem_payload | to_json }}"
           vars:
             oem_payload:
               ImageType: HPM_BMC
@@ -177,6 +182,22 @@
         - name: Show BMC update result
           ansible.builtin.debug:
             var: bmc_update
+
+        - name: Watch firmware progress
+          ansible.builtin.uri:
+            url: "http://10.32.46.90/redfish/v1/UpdateService"
+            method: GET
+            user: "{{ bmc_username }}"
+            password: "{{ bmc_password }}"
+            force_basic_auth: true
+            validate_certs: false
+            return_content: true
+          register: progress
+          until: >
+            progress.json.Oem.AMIUpdateService.UpdateInformation.UpdateStatus | default('') is match("(?i)^(done|none|success)$")
+          retries: 100
+          delay: 5
+          tags: progress
 
         - name: Get firmware versions after BMC update
           ansible.builtin.uri:
@@ -197,4 +218,3 @@
           ansible.builtin.debug:
             var: current_bmc_version.json.Version
       tags: bmc
-

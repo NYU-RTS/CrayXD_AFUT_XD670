@@ -183,7 +183,7 @@
           ansible.builtin.debug:
             var: bmc_update
 
-        - name: Pause for 1 min to allow BMC to apply update
+        - name: Pause for 1 min to start flashing firmware
           ansible.builtin.pause:
             minutes: 1
 
@@ -197,10 +197,13 @@
             validate_certs: false
             return_content: true
           register: progress
-          until: >
-            (progress.json.Oem.AMIUpdateService.UpdateInformation.UpdateStatus | default('', true)) is match("(?i)^(done|success)$")
-          retries: 100
-          delay: 5
+          until: (progress.json.Oem.AMIUpdateService.UpdateInformation.UpdateStatus | default('', true) is match("(?i)^(done|completed)$")) or (progress.json.Oem.AMIUpdateService.UpdateInformation.FlashPercentage | default('', true) is match("(?i)^100"))
+          retries: 300
+          delay: 3
+
+        - name: Pause for 3 mins to apply firmware
+          ansible.builtin.pause:
+            minutes: 3
 
         - name: Get firmware versions after BMC update
           ansible.builtin.uri:

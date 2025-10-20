@@ -189,7 +189,7 @@
 
         - name: Watch firmware progress
           ansible.builtin.uri:
-            url: "http://10.32.46.90/redfish/v1/UpdateService"
+            url: "http://{{ ansible_host }}/redfish/v1/UpdateService"
             method: GET
             user: "{{ bmc_username }}"
             password: "{{ bmc_password }}"

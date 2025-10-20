@@ -198,9 +198,7 @@
             return_content: true
           register: progress
           until: >
-            (progress.json.Oem.AMIUpdateService.UpdateInformation.UpdateStatus | default('', true) is match("(?i)^(none|completed)$"))
-            and
-            (progress.json.Oem.AMIUpdateService.UpdateInformation.FlashPercentage | default('', true) == '100% done')
+            (progress.json.Oem.AMIUpdateService.UpdateInformation.UpdateStatus | default('', true) is match("(?i)^(completed)$"))
           retries: 300
           delay: 3
 

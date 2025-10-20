@@ -183,6 +183,10 @@
           ansible.builtin.debug:
             var: bmc_update
 
+        - name: Pause for 1 min to allow BMC to apply update
+          ansible.builtin.pause:
+            minutes: 1
+
         - name: Watch firmware progress
           ansible.builtin.uri:
             url: "http://10.32.46.90/redfish/v1/UpdateService"
@@ -197,7 +201,6 @@
             progress.json.Oem.AMIUpdateService.UpdateInformation.UpdateStatus | default('') is match("(?i)^(done|none|success)$")
           retries: 100
           delay: 5
-          tags: progress
 
         - name: Get firmware versions after BMC update
           ansible.builtin.uri:

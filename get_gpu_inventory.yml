@@ -24,6 +24,9 @@
       password: "{{ bmc_password }}"
       output_file_name: "{{output_file}}"
     register: inv_output
-
-  - name: Writing GPU inventory details to {{output_file}} file
-    shell: echo {{inv_output.msg}} >> {{output_file}}
+   
+  - name: Show formatted firmware inventory
+    debug:
+      var: inv_output
+  # - name: Writing GPU inventory details to {{output_file}} file
+  #   shell: echo {{inv_output.msg}} >> {{output_file}}

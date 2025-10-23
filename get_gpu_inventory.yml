@@ -43,8 +43,76 @@
         output_file_name: "{{output_file}}"
       register: inv_output
     
-    - name: Show formatted firmware inventory
+    - name: Parse and format GPU inventory
+      set_fact:
+        formatted_output: |
+          
+          ================================================================================
+          GPU FIRMWARE INVENTORY REPORT
+          ================================================================================
+          Host:              {{ baseuri }}
+          IP Address:        {{ inv_output.msg.split(',')[0] }}
+          Model:             {{ inv_output.msg.split(',')[1] }}
+          
+          HGX FIRMWARE:
+          -------------
+          HGX BMC:           {{ inv_output.msg.split(',')[2] }}
+          HGX FPGA:          {{ inv_output.msg.split(',')[17] }}
+          HGX PCIe Switch:   {{ inv_output.msg.split(',')[38] }}
+          
+          GPU SXM FIRMWARE (8 GPUs):
+          --------------------------
+          GPU 1:             {{ inv_output.msg.split(',')[18] }}
+          GPU 2:             {{ inv_output.msg.split(',')[19] }}
+          GPU 3:             {{ inv_output.msg.split(',')[20] }}
+          GPU 4:             {{ inv_output.msg.split(',')[21] }}
+          GPU 5:             {{ inv_output.msg.split(',')[22] }}
+          GPU 6:             {{ inv_output.msg.split(',')[23] }}
+          GPU 7:             {{ inv_output.msg.split(',')[24] }}
+          GPU 8:             {{ inv_output.msg.split(',')[25] }}
+          
+          NVSWITCH FIRMWARE (4 Switches):
+          --------------------------------
+          NVSwitch 0:        {{ inv_output.msg.split(',')[26] }}
+          NVSwitch 1:        {{ inv_output.msg.split(',')[27] }}
+          NVSwitch 2:        {{ inv_output.msg.split(',')[28] }}
+          NVSwitch 3:        {{ inv_output.msg.split(',')[29] }}
+          
+          PCIE RETIMER FIRMWARE (8 Retimers):
+          ------------------------------------
+          Retimer 0:         {{ inv_output.msg.split(',')[30] }}
+          Retimer 1:         {{ inv_output.msg.split(',')[31] }}
+          Retimer 2:         {{ inv_output.msg.split(',')[32] }}
+          Retimer 3:         {{ inv_output.msg.split(',')[33] }}
+          Retimer 4:         {{ inv_output.msg.split(',')[34] }}
+          Retimer 5:         {{ inv_output.msg.split(',')[35] }}
+          Retimer 6:         {{ inv_output.msg.split(',')[36] }}
+          Retimer 7:         {{ inv_output.msg.split(',')[37] }}
+          
+          GPU INFOROM VERSIONS (8 GPUs):
+          -------------------------------
+          GPU 1 InfoROM:     {{ inv_output.msg.split(',')[39] }}
+          GPU 2 InfoROM:     {{ inv_output.msg.split(',')[40] }}
+          GPU 3 InfoROM:     {{ inv_output.msg.split(',')[41] }}
+          GPU 4 InfoROM:     {{ inv_output.msg.split(',')[42] }}
+          GPU 5 InfoROM:     {{ inv_output.msg.split(',')[43] }}
+          GPU 6 InfoROM:     {{ inv_output.msg.split(',')[44] }}
+          GPU 7 InfoROM:     {{ inv_output.msg.split(',')[45] }}
+          GPU 8 InfoROM:     {{ inv_output.msg.split(',')[46] }}
+          
+          EROT FIRMWARE:
+          --------------
+          ERoT BMC:          {{ inv_output.msg.split(',')[3] }}
+          ERoT FPGA:         {{ inv_output.msg.split(',')[4] }}
+          ERoT PCIe Switch:  {{ inv_output.msg.split(',')[15] }}
+          {% for i in range(5, 13) %}
+          ERoT GPU {{ i-4 }}:        {{ inv_output.msg.split(',')[i] }}
+          {% endfor %}
+          {% for i in range(11, 15) %}
+          ERoT NVSwitch {{ i-11 }}:  {{ inv_output.msg.split(',')[i] }}
+          {% endfor %}
+          ================================================================================
+
+    - name: Display formatted inventory
       debug:
-        var: inv_output
-    # - name: Writing GPU inventory details to {{output_file}} file
-    #   shell: echo {{inv_output.msg}} >> {{output_file}}
+        msg: "{{ formatted_output }}"

@@ -229,6 +229,7 @@
       tags: bmc
 
     - name: GPU Firmware Update via HPE tool
+      delegate_to:: localhost
       block:
         - name: Create GPU firmware working directory
           ansible.builtin.file:

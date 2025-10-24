@@ -229,29 +229,32 @@
       tags: bmc
 
     - name: GPU Firmware Update via HPE tool
-      delegate_to:: localhost
       block:
         - name: Create GPU firmware working directory
           ansible.builtin.file:
             path: "/runner/project/gpu_fw_update"
             state: directory
             mode: '0755'
+          delegate_to: localhost
 
         - name: Fetch GPU firmware tool
           ansible.builtin.get_url:
             url: "{{ web_int_gpu_tool }}"
             dest: "/runner/project/gpu_fw_update/"
+          delegate_to: localhost
 
         - name: Unzip GPU firmware tool
           ansible.builtin.unarchive:
             src: "/runner/project/gpu_fw_update/H200_tool_V1.0.6.zip"
             dest: "/runner/project/gpu_fw_update/"
-            remote_src: yes 
+            remote_src: yes
+          delegate_to: localhost
         
         - name: Fetch GPU firmware files
           ansible.builtin.get_url:
             url: "{{ web_int_gpu_fw_url }}"
             dest: "/runner/project/gpu_fw_update/"
+          delegate_to: localhost
 
         - name: Run GPU firmware update script
           ansible.builtin.shell: |
@@ -261,13 +264,16 @@
           async: 3000
           poll: 10
           failed_when: gpu_fw_update_result.rc != 0
+          delegate_to: localhost
 
         - name: Show GPU firmware update result
           ansible.builtin.debug:
             var: gpu_fw_update_result.stdout_lines
+          delegate_to: localhost
 
         - name: Show errors if any
           ansible.builtin.debug:
             var: gpu_fw_update_result.stderr_lines
           when: gpu_fw_update_result.rc != 0
+          delegate_to: localhost
       tags: gpu_fw

@@ -237,6 +237,16 @@
             mode: '0755'
           delegate_to: localhost
 
+        - name: whoami
+          ansible.builtin.command: pwd
+          register: pwd_output
+          delegate_to: localhost
+
+        - name: Show pwd output
+          ansible.builtin.debug:
+            var: pwd_output.stdout
+          delegate_to: localhost
+
         - name: Fetch GPU firmware tool
           ansible.builtin.get_url:
             url: "{{ web_int_gpu_tool }}"

@@ -288,40 +288,40 @@
             var: gpu_version_before.stdout_lines
           delegate_to: localhost 
 
-        - name: Run GPU firmware update script
-          ansible.builtin.shell: |
-            cd /runner/project/gpu_fw_update/H200_tool_V1.0.6
-            ./H200_tool_V1.0.6.sh {{ ansible_host }} {{ bmc_username }} {{ bmc_password }} update ../HGX-H200x8_0017_240625.1.3_prod-signed.corim 40
-          register: gpu_fw_update_result
-          async: 3000
-          poll: 10
-          failed_when: gpu_fw_update_result.rc != 0
-          delegate_to: localhost
+        # - name: Run GPU firmware update script
+        #   ansible.builtin.shell: |
+        #     cd /runner/project/gpu_fw_update/H200_tool_V1.0.6
+        #     ./H200_tool_V1.0.6.sh {{ ansible_host }} {{ bmc_username }} {{ bmc_password }} update ../HGX-H200x8_0017_240625.1.3_prod-signed.corim 40
+        #   register: gpu_fw_update_result
+        #   async: 3000
+        #   poll: 10
+        #   failed_when: gpu_fw_update_result.rc != 0
+        #   delegate_to: localhost
 
-        - name: Show GPU firmware update result
-          ansible.builtin.debug:
-            var: gpu_fw_update_result.stdout_lines
-          delegate_to: localhost
+        # - name: Show GPU firmware update result
+        #   ansible.builtin.debug:
+        #     var: gpu_fw_update_result.stdout_lines
+        #   delegate_to: localhost
 
-        - name: Get current firmware version
-          ansible.builtin.shell: |
-            cd /runner/project/gpu_fw_update/H200_tool_V1.0.6
-            ./H200_tool_V1.0.6.sh {{ ansible_host }} {{ bmc_username }} {{ bmc_password }} list
-          register: gpu_version_after
-          delegate_to: localhost
+        # - name: Get current firmware version
+        #   ansible.builtin.shell: |
+        #     cd /runner/project/gpu_fw_update/H200_tool_V1.0.6
+        #     ./H200_tool_V1.0.6.sh {{ ansible_host }} {{ bmc_username }} {{ bmc_password }} list
+        #   register: gpu_version_after
+        #   delegate_to: localhost
         
-        - name: Show AFTER version details
-          ansible.builtin.debug:
-            var: gpu_version_after.stdout_lines
-          delegate_to: localhost
+        # - name: Show AFTER version details
+        #   ansible.builtin.debug:
+        #     var: gpu_version_after.stdout_lines
+        #   delegate_to: localhost
        
-        - name: Create diff
-          ansible.builtin.set_fact:
-            version_changed: "{{ gpu_version_before.stdout != gpu_version_after.stdout }}"
-          delegate_to: localhost
+        # - name: Create diff
+        #   ansible.builtin.set_fact:
+        #     version_changed: "{{ gpu_version_before.stdout != gpu_version_after.stdout }}"
+        #   delegate_to: localhost
 
-        - name: Show change status
-          ansible.builtin.debug:
-            msg: "Firmware version changed: {{ version_changed }}"
-          delegate_to: localhost
+        # - name: Show change status
+        #   ansible.builtin.debug:
+        #     msg: "Firmware version changed: {{ version_changed }}"
+        #   delegate_to: localhost
       tags: gpu_fw

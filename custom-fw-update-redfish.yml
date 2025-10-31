@@ -312,13 +312,26 @@
             ./H200_tool_V1.0.6.sh {{ ansible_host }} {{ bmc_username }} {{ bmc_password }} list
           register: gpu_version_after
           delegate_to: localhost
-       
-        - name: Show firmware version diff
+
+        - name: Show BEFORE version details
           ansible.builtin.debug:
-            msg:
-              - "Host: {{ inventory_hostname }}"
-              - "BEFORE: {{ gpu_version_before.stdout_lines }}"
-              - "AFTER:  {{ gpu_version_after.stdout_lines }}"
-              - "Changed: {{ gpu_version_before.stdout_lines != gpu_version_after.stdout_lines }}"
+            var: gpu_version_after.stdout_lines
+          delegate_to: localhost 
+       
+        - name: Show firmware version diff (clean format)
+          ansible.builtin.debug:
+            msg: |
+              Host: {{ inventory_hostname }}
+              Changed: {{ gpu_version_before.stdout_lines != gpu_version_after.stdout_lines }}
+              {% for item in gpu_version_before.stdout_lines %}
+              {%   if item not in gpu_version_after.stdout_lines %}
+              - Removed: {{ item }}
+              {%   endif %}
+              {% endfor %}
+              {% for item in gpu_version_after.stdout_lines %}
+              {%   if item not in gpu_version_before.stdout_lines %}
+              - Added: {{ item }}
+              {%   endif %}
+              {% endfor %}
           delegate_to: localhost
       tags: gpu_fw

@@ -24,7 +24,7 @@
       BPB_CPLD1: "05"
       BPB_CPLD2: "32"
       SCM_CPLD1: "10"
-      HGX_FW_BMC_0: "HGX-22.10-1-rc67"
+      HGX_FW_BMC_0: "HGX-22.10-1-rc80"
       HGX_FW_FPGA_0: "2.53"
       HGX_FW_ERoT_BMC_0: "00.02.0192.0000_n00"
       HGX_FW_ERoT_FPGA_0: "00.02.0192.0000_n00"

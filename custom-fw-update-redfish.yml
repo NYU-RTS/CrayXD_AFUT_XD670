@@ -302,9 +302,9 @@
             var: gpu_fw_update_result.stdout_lines
           delegate_to: localhost
         
-        - name: Pause for 1 min to start flashing firmware
+        - name: Pause for bmc to come back
           ansible.builtin.pause:
-            minutes: 5
+            minutes: 3
           
         - name: Get current firmware version
           ansible.builtin.shell: |

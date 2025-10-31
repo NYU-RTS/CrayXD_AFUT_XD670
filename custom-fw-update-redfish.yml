@@ -319,6 +319,6 @@
               - "Host: {{ inventory_hostname }}"
               - "BEFORE: {{ gpu_version_before.stdout_lines }}"
               - "AFTER:  {{ gpu_version_after.stdout_lines }}"
-              - "Changed: {{ gpu_version_before.stdout != gpu_version_after.stdout }}"
+              - "Changed: {{ gpu_version_before.stdout_lines != gpu_version_after.stdout_lines }}"
           delegate_to: localhost
       tags: gpu_fw
